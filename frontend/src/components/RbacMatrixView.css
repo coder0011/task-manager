@@ -1,0 +1,19 @@
+/**
+ * DataPure Component Style: RBAC Matrix View
+ */
+
+.rbac-matrix-card {
+  background-color: #121215;
+  border: 1px solid #27272a;
+  border-radius: 0.875rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.rbac-cell-permitted {
+  color: #10b981;
+}
+
+.rbac-cell-restricted {
+  color: #52525b;
+}

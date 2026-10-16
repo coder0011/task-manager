@@ -1,0 +1,53 @@
+/**
+ * DataPure Component Style: Table View & Contextual Menu
+ */
+
+.table-view-container {
+  background-color: #121215;
+  border: 1px solid #27272a;
+  border-radius: 0.875rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.table-header-cell {
+  background-color: #18181c;
+  border-bottom: 1px solid #27272a;
+  color: #a1a1aa;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
+.table-row-hover {
+  transition: background-color 0.12s ease;
+}
+
+.table-row-hover:hover {
+  background-color: rgba(39, 39, 42, 0.45);
+}
+
+.table-fixed-menu {
+  position: fixed;
+  z-index: 9999;
+  width: 10.5rem;
+  background-color: #18181c;
+  border: 1px solid #27272a;
+  border-radius: 0.625rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+  padding: 0.25rem;
+  animation: menuFadeIn 0.1s ease-out;
+}
+
+@keyframes menuFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

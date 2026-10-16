@@ -1,0 +1,69 @@
+services:
+  # MySQL 8.0 Database
+  mysql:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: datapure_tasks
+      MYSQL_USER: datapure_user
+      MYSQL_PASSWORD: datapure_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/src/database/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "datapure_user", "-pdatapure_password"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - datapure-network
+
+  # Node.js + Express Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 5000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: datapure_user
+      DB_PASSWORD: datapure_password
+      DB_NAME: datapure_tasks
+      JWT_SECRET: datapure_jwt_secret_key_12345
+      SKIP_RATE_LIMIT: "true"
+    ports:
+      - "5000:5000"
+    volumes:
+      - backend_uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - datapure-network
+
+  # React 19 + Vite Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - datapure-network
+
+volumes:
+  mysql_data:
+  backend_uploads:
+
+networks:
+  datapure-network:
+    driver: bridge

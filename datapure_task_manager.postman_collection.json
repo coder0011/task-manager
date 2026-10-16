@@ -1,0 +1,1242 @@
+{
+  "info": {
+    "_postman_id": "a8b3e512-1f4d-4e9a-9e12-datapure-task-manager",
+    "name": "DataPure Enterprise Task Manager API",
+    "description": "Complete Postman API Collection for DataPure Enterprise Task Manager.\nIncludes all endpoints for Authentication, Tasks, Comments, OCC Drag-and-Drop, File Attachments, User Directory, RBAC Permissions, Activity Audit Logs, Sprint Boards, and System Diagnostics.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "2.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api",
+      "type": "string",
+      "description": "Base URL of DataPure Backend API"
+    },
+    {
+      "key": "bearer_token",
+      "value": "",
+      "type": "string",
+      "description": "JWT Bearer Token automatically set upon successful login"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearer_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "01. Diagnostics & Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Public health status endpoint returning server uptime, environment mode, and debug status."
+          }
+        },
+        {
+          "name": "System Runtime Diagnostics",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/debug",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "debug"
+              ]
+            },
+            "description": "Runtime system and database diagnostics (memory usage, node version, platform, DB connection). Enabled in development."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Authentication & Account",
+      "item": [
+        {
+          "name": "Login User (Auto-stores Bearer Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    var token = (jsonData.data && jsonData.data.token) || jsonData.token;",
+                  "    if (token) {",
+                  "        pm.collectionVariables.set(\"bearer_token\", token);",
+                  "        console.log(\"Bearer token set in collection variables:\", token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@datapure.io\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Authenticates a user and returns a signed JWT. Pre-configured test script automatically sets collection variable {{bearer_token}}."
+          }
+        },
+        {
+          "name": "Logout User (Invalidates Session & Clears Cookies)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Terminates the user session on the server, clears all HTTP-only session cookies, and records a USER_LOGOUT audit event."
+          }
+        },
+        {
+          "name": "Get Current Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Retrieves current authenticated session user, role, and granular RBAC permissions."
+          }
+        },
+        {
+          "name": "Update Current Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Alex Vance (Lead Architect)\",\n  \"avatarUrl\": \"https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "profile"
+              ]
+            },
+            "description": "Updates authenticated user profile fields. Supports fullName and avatarUrl (or avatar)."
+          }
+        },
+        {
+          "name": "Upload Profile Avatar Image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "description": "Select an image file (JPEG, PNG, WebP) up to 2MB"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/profile/avatar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "profile",
+                "avatar"
+              ]
+            },
+            "description": "Uploads a custom avatar image file for the authenticated user and stores it on disk."
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"Password123!\",\n  \"newPassword\": \"NewPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/change-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "change-password"
+              ]
+            },
+            "description": "Modifies authenticated user account password. Accepts oldPassword (or currentPassword alias) and newPassword."
+          }
+        },
+        {
+          "name": "Forgot Password Request",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@datapure.io\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/forgot-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "description": "Initiates password recovery email token generation."
+          }
+        },
+        {
+          "name": "Reset Password with Token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"RESET_TOKEN_RECEIVED_FROM_EMAIL\",\n  \"newPassword\": \"BrandNewSecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/reset-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            },
+            "description": "Resets user account password using the verification token."
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Sprint Boards",
+      "item": [
+        {
+          "name": "Get Engineering Sprint Board",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/boards/engineering-sprint?search=&priority=&category=",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "boards",
+                "engineering-sprint"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Filter tasks by title or description text"
+                },
+                {
+                  "key": "priority",
+                  "value": "",
+                  "description": "Filter tasks by LOW | MEDIUM | HIGH | URGENT"
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "description": "Filter tasks by DEVELOPMENT | DESIGN | TESTING | INFRASTRUCTURE | DOCUMENTATION"
+                }
+              ]
+            },
+            "description": "Retrieves complete sprint board columns with organized ordered tasks, assignees, comments, and attachments."
+          }
+        },
+        {
+          "name": "Get Default Active Board",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/boards",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "boards"
+              ]
+            },
+            "description": "Retrieves the default active board for the team."
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Tasks & OCC Concurrency",
+      "item": [
+        {
+          "name": "List Tasks (Paginated & Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tasks?page=1&limit=20&search=&priority=&category=&sortBy=created_at&sortOrder=desc&boardId=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for server-side pagination"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Results per page"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Full-text query match on title & description"
+                },
+                {
+                  "key": "priority",
+                  "value": "",
+                  "description": "Filter by priority (LOW, MEDIUM, HIGH, URGENT)"
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "description": "Filter by category (DEVELOPMENT, DESIGN, TESTING, etc.)"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "created_at",
+                  "description": "Sort column (default created_at; options: created_at, updated_at, order_index, priority, due_date, title, category)"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort order (default desc to display newest records first; options: desc, asc)"
+                },
+                {
+                  "key": "boardId",
+                  "value": "1",
+                  "description": "Scope query to board"
+                }
+              ]
+            },
+            "description": "Retrieves paginated tasks with full metadata, comment summaries, and attachment counts. Defaults to sorting by created_at DESC (newest records first)."
+          }
+        },
+        {
+          "name": "Get Task By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tasks/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                "1"
+              ]
+            },
+            "description": "Retrieves a single task with all comments, attachments, and assignee details."
+          }
+        },
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Deploy High-Availability Redis Cluster\",\n  \"description\": \"Provision 3-node Redis cluster with Sentinel failover for caching sub-second query payloads.\",\n  \"priority\": \"HIGH\",\n  \"category\": \"INFRASTRUCTURE\",\n  \"columnId\": 1,\n  \"dueDate\": \"2026-11-20T18:00:00.000Z\",\n  \"assigneeId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Creates a new enterprise task with audit logging and auto-calculated order index."
+          }
+        },
+        {
+          "name": "Update Task Properties",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Deploy High-Availability Redis Cluster (Phase 1 Complete)\",\n  \"description\": \"Provisioned 3-node Redis cluster with Sentinel. Running performance benchmarks.\",\n  \"priority\": \"URGENT\",\n  \"category\": \"INFRASTRUCTURE\",\n  \"columnId\": 2,\n  \"dueDate\": \"2026-11-25T18:00:00.000Z\",\n  \"assigneeId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                "1"
+              ]
+            },
+            "description": "Updates task attributes with audit trail tracking."
+          }
+        },
+        {
+          "name": "Move Task (Optimistic Concurrency Control - OCC)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetColumnId\": 2,\n  \"newOrderIndex\": 0,\n  \"version\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks/1/move",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                "1",
+                "move"
+              ]
+            },
+            "description": "Atomically shifts task column and reorders neighbor tasks with version verification (OCC). Accepts either version or expectedVersion."
+          }
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tasks/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                "1"
+              ]
+            },
+            "description": "Permanently deletes a task, cascading deletion to all its comments and attachments."
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Task Comments Management",
+      "item": [
+        {
+          "name": "Add Comment to Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Completed stage 1 testing; ready for final QA review.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks/1/comments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                "1",
+                "comments"
+              ]
+            },
+            "description": "Creates a new comment on a task with actor identity and audit trail entry."
+          }
+        },
+        {
+          "name": "Get Comments for Task",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tasks/1/comments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                "1",
+                "comments"
+              ]
+            },
+            "description": "Retrieves all comments associated with a specific task including author role and avatar."
+          }
+        },
+        {
+          "name": "Delete Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tasks/comments/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                "comments",
+                "1"
+              ]
+            },
+            "description": "Permanently removes a comment from its parent task (author or ADMIN only)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Attachments & File Uploads",
+      "item": [
+        {
+          "name": "Upload Task Attachments (Multipart Form-Data)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "description": "Select one or more files (PNG, JPG, PDF, ZIP, TXT) up to 10MB each"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks/1/attachments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                "1",
+                "attachments"
+              ]
+            },
+            "description": "Uploads up to 5 files at once attached to task with auto file size & MIME type validation."
+          }
+        },
+        {
+          "name": "View Attachment Inline",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/attachments/1/view",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attachments",
+                "1",
+                "view"
+              ]
+            },
+            "description": "Streams the attachment binary inline for viewing in browser or image previewer."
+          }
+        },
+        {
+          "name": "Download Attachment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/attachments/1/download",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attachments",
+                "1",
+                "download"
+              ]
+            },
+            "description": "Forces download attachment with original filename header."
+          }
+        },
+        {
+          "name": "Delete Attachment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/attachments/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "attachments",
+                "1"
+              ]
+            },
+            "description": "Deletes attachment record from database and cleans up disk file."
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. User Management & Directory",
+      "item": [
+        {
+          "name": "List Users Directory (Paginated & Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users?page=1&limit=20&search=&role=&status=&all=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page index"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Number of results"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search by full name or email"
+                },
+                {
+                  "key": "role",
+                  "value": "",
+                  "description": "Filter by role (ADMIN, MEMBER, VIEWER)"
+                },
+                {
+                  "key": "all",
+                  "value": "false",
+                  "description": "Pass true to return full unpaginated list (for assignees dropdowns)"
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter by account status (active, inactive)"
+                }
+              ]
+            },
+            "description": "Retrieves paginated users directory sorted by created_at DESC, updated_at DESC (newest members first). Supports search, role, and status filtering."
+          }
+        },
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "1"
+              ]
+            },
+            "description": "Retrieves detailed user profile, role, status, and permissions."
+          }
+        },
+        {
+          "name": "Create User (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sarah.connor@datapure.io\",\n  \"password\": \"Password123!\",\n  \"fullName\": \"Sarah Connor\",\n  \"role\": \"MEMBER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "description": "Directly creates a user account with assigned role. Admin only."
+          }
+        },
+        {
+          "name": "Update User Profile (Admin Only)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Sarah Connor Briggs\",\n  \"email\": \"sarah.briggs@datapure.io\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "2"
+              ]
+            },
+            "description": "Updates full name or email for a member. Admin only."
+          }
+        },
+        {
+          "name": "Upload User Avatar (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "description": "Select an avatar image file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/users/2/avatar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "2",
+                "avatar"
+              ]
+            },
+            "description": "Uploads an avatar for any target user. Admin only."
+          }
+        },
+        {
+          "name": "Update User Role (Admin Only)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/2/role",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "2",
+                "role"
+              ]
+            },
+            "description": "Promotes or demotes user role (ADMIN, MEMBER, VIEWER, or custom). Admin only."
+          }
+        },
+        {
+          "name": "Update User Active Status (Admin Only)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/2/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "2",
+                "status"
+              ]
+            },
+            "description": "Deactivates or activates a member account. Admin only."
+          }
+        },
+        {
+          "name": "Delete User (Admin Only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "2"
+              ]
+            },
+            "description": "Permanently deletes user account. Admin only."
+          }
+        }
+      ]
+    },
+    {
+      "name": "08. Role Governance (RBAC)",
+      "item": [
+        {
+          "name": "List Roles & Permissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rbac/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rbac",
+                "roles"
+              ]
+            },
+            "description": "Lists all system and custom roles with their associated permissions array."
+          }
+        },
+        {
+          "name": "List Available System Permissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rbac/permissions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rbac",
+                "permissions"
+              ]
+            },
+            "description": "Lists all granular permission keys available in the system matrix."
+          }
+        },
+        {
+          "name": "Create Custom Role (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"DEVOPS_ENGINEER\",\n  \"name\": \"DevOps Engineer\",\n  \"description\": \"Responsible for infrastructure, deployments, and cluster health monitoring.\",\n  \"permissions\": [\n    \"task:create\",\n    \"task:edit\",\n    \"audit:view\",\n    \"user:view\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rbac/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rbac",
+                "roles"
+              ]
+            },
+            "description": "Provisions a new custom role with associated permissions. Requires key (uppercase alphanumeric) and name. Admin only."
+          }
+        },
+        {
+          "name": "Update Role Permissions (Admin Only)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permissions\": [\n    \"task:view\",\n    \"task:create\",\n    \"task:edit\",\n    \"task:delete\",\n    \"audit:view\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rbac/roles/4/permissions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rbac",
+                "roles",
+                "4",
+                "permissions"
+              ]
+            },
+            "description": "Updates permission set attached to a specific role ID. Admin only."
+          }
+        },
+        {
+          "name": "Delete Custom Role (Admin Only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rbac/roles/4",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rbac",
+                "roles",
+                "4"
+              ]
+            },
+            "description": "Deletes a custom role. System core roles (ADMIN, MEMBER, VIEWER) cannot be deleted. Admin only."
+          }
+        }
+      ]
+    },
+    {
+      "name": "09. Activity Audit Logs",
+      "item": [
+        {
+          "name": "Query Activity Logs (Paginated & Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/activity-logs?page=1&limit=20&entityType=&entityId=&action=&userId=",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "activity-logs"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Results per page"
+                },
+                {
+                  "key": "entityType",
+                  "value": "",
+                  "description": "Filter by entity type (TASK, USER, ROLE)"
+                },
+                {
+                  "key": "entityId",
+                  "value": "",
+                  "description": "Filter by entity record ID"
+                },
+                {
+                  "key": "action",
+                  "value": "",
+                  "description": "Filter by specific action code (TASK_CREATED, COMMENT_ADDED, USER_UPDATED, etc.)"
+                },
+                {
+                  "key": "userId",
+                  "value": "",
+                  "description": "Filter by actor user ID"
+                }
+              ]
+            },
+            "description": "Retrieves immutable audit trail entries with actor names, avatars, timestamps, and detail diffs."
+          }
+        },
+        {
+          "name": "Task Specific Audit Trail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/activity-logs?page=1&limit=50&entityType=TASK&entityId=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "activity-logs"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Max audit trail events to fetch"
+                },
+                {
+                  "key": "entityType",
+                  "value": "TASK",
+                  "description": "Target entity"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1",
+                  "description": "Target task ID"
+                }
+              ]
+            },
+            "description": "Queries audit log history for an individual task, comments, and attachments."
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. User Notifications",
+      "item": [
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            },
+            "description": "Fetch the authenticated user notifications list sorted by newest first."
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/1/read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "1",
+                "read"
+              ]
+            },
+            "description": "Mark a specific notification as read by ID."
+          }
+        },
+        {
+          "name": "Mark All Notifications as Read",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/mark-all-read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "mark-all-read"
+              ]
+            },
+            "description": "Mark all unread notifications as read for current user."
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "1"
+              ]
+            },
+            "description": "Delete a single notification by ID."
+          }
+        },
+        {
+          "name": "Clear All Notifications",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            },
+            "description": "Delete all notifications for current authenticated user."
+          }
+        }
+      ]
+    }
+  ]
+}

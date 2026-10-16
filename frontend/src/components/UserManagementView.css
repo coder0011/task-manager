@@ -1,0 +1,23 @@
+/**
+ * DataPure Component Style: User Management & Team Directory
+ */
+
+.user-directory-container {
+  background-color: #121215;
+  border: 1px solid #27272a;
+  border-radius: 0.875rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.user-status-pill-active {
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #34d399;
+}
+
+.user-status-pill-suspended {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}

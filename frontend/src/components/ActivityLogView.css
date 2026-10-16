@@ -1,0 +1,30 @@
+/**
+ * DataPure Component Style: Activity Audit Log View
+ */
+
+.audit-log-container {
+  background-color: #121215;
+  border: 1px solid #27272a;
+  border-radius: 0.875rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.audit-log-row {
+  border-bottom: 1px solid rgba(39, 39, 42, 0.6);
+  transition: background-color 0.12s ease;
+}
+
+.audit-log-row:hover {
+  background-color: rgba(39, 39, 42, 0.35);
+}
+
+.audit-json-viewer {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background-color: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.75rem;
+  overflow-x: auto;
+}

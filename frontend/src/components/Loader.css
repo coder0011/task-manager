@@ -1,0 +1,42 @@
+/**
+ * DataPure Component Style: Loader & Progress Shimmers
+ */
+
+@keyframes loader-progress {
+  0% {
+    left: -30%;
+    width: 30%;
+  }
+  50% {
+    left: 20%;
+    width: 60%;
+  }
+  100% {
+    left: 100%;
+    width: 30%;
+  }
+}
+
+.loader-progress-bar {
+  animation: loader-progress 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.page-skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.02) 25%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.02) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}

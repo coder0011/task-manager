@@ -1,0 +1,161 @@
+name: Enterprise CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package.json
+            frontend/package.json
+
+      - name: Install Dependencies
+        run: |
+          npm --prefix backend ci || npm --prefix backend install
+          npm --prefix frontend ci || npm --prefix frontend install
+
+      - name: Typecheck Backend (TypeScript)
+        run: npx --prefix backend tsc --noEmit
+
+      - name: Typecheck Frontend (TypeScript)
+        run: npx --prefix frontend tsc --noEmit
+
+  backend-tests:
+    name: Backend Unit & E2E API Tests
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        command: --default-authentication-plugin=mysql_native_password
+        env:
+          MYSQL_ROOT_PASSWORD: root_password
+          MYSQL_DATABASE: datapure_tasks
+          MYSQL_USER: datapure_user
+          MYSQL_PASSWORD: datapure_password
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -h localhost -u datapure_user -pdatapure_password" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Backend Dependencies
+        run: npm --prefix backend ci || npm --prefix backend install
+
+      - name: Initialize Database Schema & Seed
+        run: npm --prefix backend run db:migrate
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_USER: datapure_user
+          DB_PASSWORD: datapure_password
+          DB_NAME: datapure_tasks
+          JWT_SECRET: datapure_ci_test_secret_12345
+          SKIP_RATE_LIMIT: 'true'
+
+      - name: Run Backend Vitest Test Suite (62 Tests)
+        run: npm --prefix backend test
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_USER: datapure_user
+          DB_PASSWORD: datapure_password
+          DB_NAME: datapure_tasks
+          JWT_SECRET: datapure_ci_test_secret_12345
+          SKIP_RATE_LIMIT: 'true'
+
+      - name: Verify Backend Build Artifact
+        run: npm --prefix backend run build
+
+  frontend-component-tests:
+    name: Frontend RTL & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Frontend Dependencies
+        run: npm --prefix frontend ci || npm --prefix frontend install
+
+      - name: Run React Testing Library & Vitest Tests (23 Tests)
+        run: npm --prefix frontend test
+
+      - name: Build Frontend Production Bundle (Vite)
+        run: npm --prefix frontend run build
+
+  playwright-browser-e2e:
+    name: Playwright Real-Browser Automated E2E
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, backend-tests, frontend-component-tests]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Spin up Docker Compose Architecture
+        run: docker compose up -d --build
+
+      - name: Wait for Stack Health Check
+        run: |
+          echo "Waiting for backend & frontend services to become healthy..."
+          timeout 60 bash -c 'until curl -s -f http://localhost:8080/api/health > /dev/null; do sleep 2; echo "Polling http://localhost:8080/api/health..."; done'
+          echo "Services are online and healthy!"
+
+      - name: Install Frontend Dependencies
+        run: npm --prefix frontend ci || npm --prefix frontend install
+
+      - name: Install Playwright Chromium Browser
+        run: npx --prefix frontend playwright install --with-deps chromium
+
+      - name: Run Playwright E2E Test Suites (16 Tests)
+        run: npm --prefix frontend run test:e2e
+
+      - name: Dump Docker Logs on Failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Upload Playwright Test Report Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 14
+
+      - name: Teardown Docker Stack
+        if: always()
+        run: docker compose down -v

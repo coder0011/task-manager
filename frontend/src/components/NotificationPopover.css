@@ -1,0 +1,46 @@
+/**
+ * DataPure Component Style: Notification Popover
+ */
+
+.notification-popover-panel {
+  position: absolute;
+  right: 0;
+  margin-top: 0.5rem;
+  width: 24rem;
+  max-width: 90vw;
+  background-color: #121215;
+  border: 1px solid #27272a;
+  border-radius: 0.875rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  z-index: 50;
+  animation: popoverSlideDown 0.15s ease-out;
+}
+
+@keyframes popoverSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  transition: background-color 0.12s ease;
+  border-bottom: 1px solid rgba(39, 39, 42, 0.5);
+}
+
+.notification-item:hover {
+  background-color: rgba(39, 39, 42, 0.35);
+}
+
+.notification-item-unread {
+  background-color: rgba(59, 130, 246, 0.04);
+}

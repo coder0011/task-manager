@@ -1,0 +1,30 @@
+/**
+ * DataPure Component Style: Task Card
+ */
+
+.task-card {
+  background-color: #18181c;
+  border: 1px solid #27272a;
+  border-radius: 0.625rem;
+  padding: 0.875rem;
+  cursor: grab;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.task-card:hover {
+  border-color: #3f3f46;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.4);
+}
+
+.task-card-dragging {
+  opacity: 0.4;
+  border-style: dashed;
+}
+
+.task-card-key {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #71717a;
+}

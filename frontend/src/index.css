@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  background-color: #09090b;
+  color: #fafafa;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Sonner Toast Theme Customization: Dark Theme Background with Colored Icons */
+[data-sonner-toast] {
+  background-color: #121215 !important;
+  border: 1px solid #27272a !important;
+  color: #f4f4f5 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-sonner-toast] [data-title] {
+  color: #f4f4f5 !important;
+  font-weight: 500 !important;
+  font-size: 0.8125rem !important;
+}
+
+[data-sonner-toast] [data-description] {
+  color: #a1a1aa !important;
+  font-size: 0.75rem !important;
+}
+
+[data-sonner-toast] [data-close-button] {
+  background-color: #27272a !important;
+  border: 1px solid #52525b !important;
+  color: #f4f4f5 !important;
+  border-radius: 6px !important;
+  opacity: 0.9 !important;
+  transition: all 0.15s ease !important;
+}
+
+[data-sonner-toast] [data-close-button] svg {
+  color: #f4f4f5 !important;
+  stroke: #f4f4f5 !important;
+  width: 12px !important;
+  height: 12px !important;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  background-color: #3f3f46 !important;
+  border-color: #71717a !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Specific colored icons on dark theme */
+[data-sonner-toast][data-type='success'] [data-icon],
+[data-sonner-toast][data-type='success'] [data-icon] svg {
+  color: #10b981 !important; /* emerald-500 */
+}
+
+[data-sonner-toast][data-type='error'] [data-icon],
+[data-sonner-toast][data-type='error'] [data-icon] svg {
+  color: #ef4444 !important; /* red-500 */
+}
+
+[data-sonner-toast][data-type='warning'] [data-icon],
+[data-sonner-toast][data-type='warning'] [data-icon] svg {
+  color: #f59e0b !important; /* amber-500 */
+}
+
+[data-sonner-toast][data-type='info'] [data-icon],
+[data-sonner-toast][data-type='info'] [data-icon] svg {
+  color: #3b82f6 !important; /* blue-500 */
+}
+
